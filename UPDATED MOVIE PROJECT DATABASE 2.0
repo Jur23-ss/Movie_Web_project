@@ -1,0 +1,55 @@
+
+
+
+CREATE TABLE users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT,
+    email TEXT UNIQUE,
+    password TEXT,
+    is_admin BOOLEAN DEFAULT 0
+);
+
+CREATE TABLE movies (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT,
+    genre TEXT,
+    duration TEXT,
+    image_filename TEXT,
+    description TEXT,
+    price REAL,
+    section TEXT
+);
+
+CREATE TABLE cart (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER,
+    movie_id INTEGER,
+    FOREIGN KEY(user_id) REFERENCES users(id),
+    FOREIGN KEY(movie_id) REFERENCES movies(id)
+);
+
+CREATE TABLE orders (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY(user_id) REFERENCES users(id)
+);
+
+CREATE TABLE order_items (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    order_id INTEGER,
+    movie_id INTEGER,
+    FOREIGN KEY(order_id) REFERENCES orders(id),
+    FOREIGN KEY(movie_id) REFERENCES movies(id)
+);
+
+CREATE TABLE sliders (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    headline TEXT,
+    subheadline TEXT,
+    image TEXT
+);
+
+ALTER TABLE users ADD COLUMN remember_token VARCHAR(255) DEFAULT NULL;
+
+
