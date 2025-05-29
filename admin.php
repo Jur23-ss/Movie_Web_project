@@ -1,4 +1,5 @@
-<?php
+
+<?php 
 session_start();
 include 'includes/db_connect.php';
 
@@ -25,7 +26,7 @@ if (!$is_admin) {
     <title>Admin Dashboard</title>
     <link rel="stylesheet" href="css/style.css">
     <style>
-        body, html {
+          body, html {
             margin: 0;
             padding: 0;
             height: 100%;
@@ -115,25 +116,25 @@ if (!$is_admin) {
 </head>
 <body>
 
-    <!-- 🎬 Rotating Background Video -->
+    <!--Background Video -->
     <video autoplay muted id="bgVideo" class="video-bg">
         <source src="media/clip1.mp4" type="video/mp4">
     </video>
 
-    <!-- 🔊 Mute Button -->
+    <!--Toggle Mute -->
     <button id="soundToggle" onclick="toggleSound()">🔇 Unmute</button>
 
-    <!-- 🧭 Admin Navbar -->
+    <!--Admin Navbar -->
     <header class="header">
-        <div class="logo">🎬 Admin Panel</div>
+        <div class="logo">Admin Panel</div>
         <nav class="navbar">
-            <a class="btn" href="add_movie.php">Add Movie</a>
-            <a class="btn" href="view_orders.php">View Orders</a>
-            <a class="btn" href="manage_movies.php">Manage Movies</a>
-            <a class="btn" href="admin_manage_sliders.php">Manage Sliders</> 
-            <a class="btn" href="manage_users.php">Manage Users</a>
-            <a class="btn" href="index.php">Homepage</a>
-            <a class="btn" href="logout.php">Logout</a>
+            <a href="add_movie.php">Add Movie</a>
+            <a href="view_orders.php">View Orders</a>
+            <a href="manage_movies.php">Manage Movies</a>
+            <a href="admin_manage_sliders.php">Manage Sliders</a>
+            <a href="manage_users.php">Manage Users</a>
+            <a href="index.php">Homepage</a>
+            <a href="logout.php">Logout</a>
         </nav>
     </header>
 
@@ -151,14 +152,9 @@ if (!$is_admin) {
 
         video.addEventListener("ended", () => {
             current = (current + 1) % videos.length;
-            video.classList.add("fade-out");
-
-            setTimeout(() => {
-                source.src = videos[current];
-                video.load();
-                video.play().catch(err => console.error("Playback error:", err));
-                video.classList.remove("fade-out");
-            }, 800);
+            source.src = videos[current];
+            video.load();
+            video.play().catch(err => console.error("Playback error:", err));
         });
 
         function toggleSound() {

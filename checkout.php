@@ -9,6 +9,7 @@ if (!isset($_SESSION['user_id'])) {
 
 $user_id = $_SESSION['user_id'];
 $movies = [];
+$totalPrice = 0;
 
 // Load cart items
 $stmt = $conn->prepare("
@@ -21,6 +22,7 @@ $stmt->bind_param("i", $user_id);
 $stmt->execute();
 $result = $stmt->get_result();
 while ($row = $result->fetch_assoc()) {
+    $totalPrice += $row['price'];
     $movies[] = $row;
 }
 
@@ -28,8 +30,8 @@ while ($row = $result->fetch_assoc()) {
 $success = false;
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && count($movies) > 0) {
     // Insert order
-    $stmt = $conn->prepare("INSERT INTO orders (user_id) VALUES (?)");
-    $stmt->bind_param("i", $user_id);
+    $stmt = $conn->prepare("INSERT INTO orders (user_id, total_price) VALUES (?, ?)");
+    $stmt->bind_param("id", $user_id, $totalPrice);
     $stmt->execute();
     $order_id = $stmt->insert_id;
 
@@ -91,6 +93,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && count($movies) > 0) {
         .movie-info {
             flex-grow: 1;
         }
+        .movie-info h3 {
+            margin: 0 0 0.3rem 0;
+        }
+        .movie-info p {
+            margin: 0;
+            color: #ccc;
+        }
         .btn {
             padding: 0.7rem 1.5rem;
             background: #ff2c1f;
@@ -114,6 +123,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && count($movies) > 0) {
             font-size: 1.2rem;
             margin-top: 2rem;
         }
+        .total {
+            text-align: right;
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-top: 1rem;
+            color: #ff2c1f;
+        }
     </style>
 </head>
 <body>
@@ -129,9 +145,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && count($movies) > 0) {
                     <div class="movie-info">
                         <h3><?= htmlspecialchars($movie['title']) ?></h3>
                         <p><?= htmlspecialchars($movie['duration']) ?> | <?= htmlspecialchars($movie['genre']) ?></p>
+                        <p>Price: $<?= number_format($movie['price'], 2) ?></p>
                     </div>
                 </div>
             <?php endforeach; ?>
+
+            <div class="total">Total: $<?= number_format($totalPrice, 2) ?></div>
+
             <form method="POST" class="center">
                 <button class="btn" type="submit">Confirm Order</button>
             </form>

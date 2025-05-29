@@ -43,6 +43,10 @@ $sliders = $conn->query("SELECT * FROM sliders ORDER BY id DESC");
         th {
             background: #2a2a2a;
         }
+        img {
+            width: 100px;
+            border-radius: 5px;
+        }
         a {
             color: #00ccff;
         }
@@ -66,7 +70,7 @@ $sliders = $conn->query("SELECT * FROM sliders ORDER BY id DESC");
         <?php while ($row = $sliders->fetch_assoc()): ?>
         <tr>
             <td><?= $row['id'] ?></td>
-            <td><?= htmlspecialchars($row['image_filename']) ?></td>
+            <td><img src="images.png/<?= htmlspecialchars($row['image']) ?>" alt="Slider Image"></td>
             <td><?= htmlspecialchars($row['headline']) ?></td>
             <td><?= htmlspecialchars($row['subheadline']) ?></td>
             <td>

@@ -116,6 +116,7 @@ $movies = $stmt->get_result();
 </head>
 <body>
     <h2>Manage Movies</h2>
+     <a href="admin.php" style="display:inline-block; margin-bottom: 1.5rem; color:white; background:#2a2a2a; padding: 0.6rem 1rem; border-radius: 6px; text-decoration:none; font-weight:bold;">⬅ Back to Admin Panel</a>
 
     <form method="GET" class="search-sort">
         <input type="text" name="search" value="<?= htmlspecialchars($search) ?>" placeholder="Search by title or genre" autocomplete="off" id="searchInput">

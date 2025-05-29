@@ -18,9 +18,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         die("Image is required.");
     }
 
-    $stmt = $conn->prepare("INSERT INTO sliders (image_filename, headline, subheadline) VALUES (?, ?, ?)");
+    // Fixed column name and added error checking
+    $stmt = $conn->prepare("INSERT INTO sliders (image, headline, subheadline) VALUES (?, ?, ?)");
+    if (!$stmt) {
+        die("Prepare failed: " . $conn->error);
+    }
     $stmt->bind_param("sss", $filename, $headline, $subheadline);
     $stmt->execute();
+    $stmt->close();
+
     header("Location: admin_manage_sliders.php");
     exit;
 }

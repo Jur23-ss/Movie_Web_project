@@ -7,14 +7,33 @@ $errors = [];
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $email = trim($_POST['email']);
     $password = $_POST['password'];
+    $remember = isset($_POST['remember']);
 
     $stmt = $conn->prepare("SELECT id, password FROM users WHERE email = ?");
+    if (!$stmt) {
+        die("Query error: " . $conn->error);
+    }
+
     $stmt->bind_param("s", $email);
     $stmt->execute();
     $stmt->bind_result($user_id, $hashed);
+
     if ($stmt->fetch()) {
         if (password_verify($password, $hashed)) {
             $_SESSION['user_id'] = $user_id;
+
+            // If remember me is checked
+            if ($remember) {
+                $token = bin2hex(random_bytes(16));
+                setcookie("remember_token", $token, time() + (86400 * 30), "/", "", false, true);
+
+                $update = $conn->prepare("UPDATE users SET remember_token = ? WHERE id = ?");
+                if ($update) {
+                    $update->bind_param("si", $token, $user_id);
+                    $update->execute();
+                }
+            }
+
             header("Location: index.php");
             exit;
         } else {
@@ -23,9 +42,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     } else {
         $errors[] = "Email not found.";
     }
+
+    $stmt->close();
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -63,6 +83,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             border: none;
             border-radius: 5px;
             outline: none;
+        }
+        .checkbox {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        .checkbox input {
+            margin-right: 0.5rem;
         }
         .btn {
             width: 100%;
@@ -103,6 +131,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <form method="post" action="login.php">
             <input type="email" name="email" placeholder="Email" required>
             <input type="password" name="password" placeholder="Password" required>
+            <div class="checkbox">
+                <input type="checkbox" name="remember" id="remember">
+                <label for="remember">Remember Me</label>
+            </div>
             <button class="btn" type="submit">Log In</button>
         </form>
         <div class="link">

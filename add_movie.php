@@ -8,6 +8,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $genre = $_POST['genre'];
     $duration = $_POST['duration'];
     $desc = $_POST['description'];
+    $price = floatval($_POST['price']);
+    $section = $_POST['section'] ?? 'featured'; // 'featured' or 'coming'
     $image = null;
 
     // Handle image upload
@@ -24,8 +26,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // Save movie
-    $stmt = $conn->prepare("INSERT INTO movies (title, genre, duration, image_filename, description) VALUES (?, ?, ?, ?, ?)");
-    $stmt->bind_param("sssss", $title, $genre, $duration, $image, $desc);
+    $stmt = $conn->prepare("INSERT INTO movies (title, genre, duration, image_filename, description, price, section) VALUES (?, ?, ?, ?, ?, ?, ?)");
+    $stmt->bind_param("sssssis", $title, $genre, $duration, $image, $desc, $price, $section);
     $stmt->execute();
     header("Location: admin.php");
     exit;
@@ -57,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             text-align: center;
             margin-bottom: 1.5rem;
         }
-        input, textarea {
+        input, textarea, select {
             width: 100%;
             padding: 0.8rem;
             margin: 0.6rem 0 1.2rem;
@@ -92,6 +94,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <input type="text" name="title" placeholder="Title" required>
             <input type="text" name="genre" placeholder="Genre" required>
             <input type="text" name="duration" placeholder="Duration" required>
+            <input type="number" name="price" step="0.01" placeholder="Price (e.g., 9.99)" required>
+            <select name="section" required>
+                <option value="featured">Featured Movies</option>
+                <option value="coming_soon">Coming Soon</option>
+            </select>
             <input type="file" name="image_file" accept="image/*" required>
             <textarea name="description" placeholder="Description" required></textarea>
             <button class="btn" type="submit">Add Movie</button>

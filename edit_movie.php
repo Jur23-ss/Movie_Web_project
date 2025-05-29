@@ -16,9 +16,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $duration = $_POST['duration'];
     $image = $_POST['image_filename'];
     $desc = $_POST['description'];
+    $price = floatval($_POST['price']);
+    $section = $_POST['section'];
 
-    $stmt = $conn->prepare("UPDATE movies SET title=?, genre=?, duration=?, image_filename=?, description=? WHERE id=?");
-    $stmt->bind_param("sssssi", $title, $genre, $duration, $image, $desc, $id);
+    $stmt = $conn->prepare("UPDATE movies SET title=?, genre=?, duration=?, image_filename=?, description=?, price=?, section=? WHERE id=?");
+    $stmt->bind_param("sssssdsi", $title, $genre, $duration, $image, $desc, $price, $section, $id);
     $stmt->execute();
     header("Location: manage_movies.php");
     exit;
@@ -57,7 +59,7 @@ $movie = $result->fetch_assoc();
             text-align: center;
             margin-bottom: 1.5rem;
         }
-        input, textarea {
+        input, textarea, select {
             width: 100%;
             padding: 0.8rem;
             margin: 0.6rem 0 1.2rem;
@@ -92,6 +94,12 @@ $movie = $result->fetch_assoc();
             <input type="text" name="genre" value="<?= htmlspecialchars($movie['genre']) ?>" required placeholder="Genre">
             <input type="text" name="duration" value="<?= htmlspecialchars($movie['duration']) ?>" required placeholder="Duration">
             <input type="text" name="image_filename" value="<?= htmlspecialchars($movie['image_filename']) ?>" required placeholder="image1.jpg">
+            <input type="number" step="0.01" name="price" value="<?= htmlspecialchars($movie['price']) ?>" required placeholder="Price">
+            <select name="section" required>
+                <option value="">Select Section</option>
+                <option value="featured" <?= $movie['section'] === 'featured' ? 'selected' : '' ?>>Featured</option>
+                <option value="coming_soon" <?= $movie['section'] === 'coming_soon' ? 'selected' : '' ?>>Coming Soon</option>
+            </select>
             <textarea name="description" required placeholder="Description"><?= htmlspecialchars($movie['description']) ?></textarea>
             <button class="btn" type="submit">Update Movie</button>
         </form>

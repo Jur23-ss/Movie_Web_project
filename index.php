@@ -2,7 +2,6 @@
 session_start();
 include 'includes/db_connect.php';
 
-// Fetch cart count from DB for logged-in user
 $cartCount = 0;
 if (isset($_SESSION['user_id'])) {
     $stmt = $conn->prepare("SELECT COUNT(*) FROM cart WHERE user_id = ?");
@@ -14,67 +13,145 @@ if (isset($_SESSION['user_id'])) {
 }
 
 $sliders = $conn->query("SELECT * FROM sliders ORDER BY id ASC");
-// Fetch movie data
-$movies = $conn->query("SELECT * FROM movies LIMIT 10");
-$comingSoon = $conn->query("SELECT * FROM movies ORDER BY id DESC LIMIT 10");
-$sliders = $conn->query("SELECT * FROM sliders ORDER BY id ASC");
-
+$featured = $conn->query("SELECT * FROM movies WHERE section = 'featured' ORDER BY id DESC LIMIT 10");
+$comingSoon = $conn->query("SELECT * FROM movies WHERE section = 'coming_soon' ORDER BY id DESC LIMIT 10");
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="'IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Responsive movies website</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/remixicon/3.5.0/remixicon.css">
     <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css"/>
     <style>
-    .search-section {
-        padding: 2rem 1rem;
-        background: #0b0b0b;
-        text-align: center;
-    }
-
-    .search-container {
-        position: relative;
-        max-width: 320px;
-        margin: auto;
-    }
-
-    #searchBox {
-        width: 100%;
-        padding: 0.8rem;
-        border-radius: 6px;
-        border: none;
-        background: #2a2a2a;
-        color: white;
-        font-family: 'Poppins', sans-serif;
-        font-size: 1rem;
-    }
-
-    .suggestions {
-        position: absolute;
-        top: 105%;
-        width: 100%;
-        background: #1c1c1c;
-        border-radius: 5px;
-        z-index: 999;
-        display: none;
-        text-align: left;
-    }
-
-    .suggestions div {
-        padding: 10px;
-        color: white;
-        cursor: pointer;
-        border-bottom: 1px solid #333;
-    }
-
-    .suggestions div:hover {
-        background-color: #ff2c1f;
-    }
+        body {
+            background: #0b0b0b;
+            color: white;
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+        }
+        header.header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #0b0b0b;
+            padding: 1rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        header.header .logo {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: white;
+            text-decoration: none;
+        }
+        header.header .navbar {
+            list-style: none;
+            display: flex;
+            gap: 2rem;
+            padding: 0;
+            margin: 0;
+        }
+        header.header .navbar li a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        header.header .btn {
+            background: #ff2c1f;
+            color: white;
+            padding: 0.5rem 1rem;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: 600;
+        }
+        .search-bar-container {
+            margin: 2rem auto;
+            text-align: center;
+            position: relative;
+        }
+        .search-bar-container input {
+            padding: 0.8rem 1rem;
+            width: 80%;
+            max-width: 500px;
+            border-radius: 10px;
+            border: none;
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 1rem;
+            font-family: 'Poppins', sans-serif;
+        }
+        #suggestions {
+            position: absolute;
+            background: #1c1c1c;
+            width: 80%;
+            max-width: 500px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            border-radius: 0 0 10px 10px;
+        }
+        #suggestions div {
+            padding: 0.8rem 1rem;
+            cursor: pointer;
+        }
+        #suggestions div:hover {
+            background: #333;
+        }
+        .swiper-slide img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .section {
+            padding: 2rem;
+        }
+        .heading {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            border-bottom: 2px solid red;
+            padding-bottom: 0.5rem;
+        }
+        .movie-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.5rem;
+        }
+        .movie-card {
+            width: 170px;
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .movie-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 20px rgba(255, 44, 31, 0.3);
+        }
+        .movie-card img {
+            width: 100%;
+            height: 260px;
+            object-fit: cover;
+            border-radius: 10px;
+        }
+        .movie-card h4 {
+            font-size: 1rem;
+            margin: 0.5rem 0 0.2rem;
+            color: white;
+        }
+        .movie-card p {
+            font-size: 0.85rem;
+            color: #ccc;
+            margin-bottom: 0.5rem;
+        }
+        .movie-card .price {
+            color: #ffb84d;
+            font-weight: bold;
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
     </style>
 </head>
 <body>
@@ -85,7 +162,7 @@ $sliders = $conn->query("SELECT * FROM sliders ORDER BY id ASC");
         <li><a href="#home" class="home-active">Home</a></li>
         <li><a href="#movies">Movies</a></li>
         <li><a href="#coming">Coming</a></li>
-        <li><a href="cart.php">🛒 View Cart (<?= $cartCount ?>)</a></li>
+        <li><a href="cart.php">View Cart (<?= $cartCount ?>)</a></li>
         <?php if (isset($_SESSION['user_id'])):
             $stmt = $conn->prepare("SELECT is_admin FROM users WHERE id = ?");
             $stmt->bind_param("i", $_SESSION['user_id']);
@@ -105,12 +182,16 @@ $sliders = $conn->query("SELECT * FROM sliders ORDER BY id ASC");
     <?php endif; ?>
 </header>
 
-<!-- Home Slider -->
+<div class="search-bar-container">
+    <input type="text" id="searchInput" placeholder="Search for movies...">
+    <div id="suggestions"></div>
+</div>
+
 <section class="home swiper" id="home">
     <div class="swiper-wrapper">
         <?php while ($row = $sliders->fetch_assoc()): ?>
         <div class="swiper-slide container">
-            <img src="images.png/<?= htmlspecialchars($row['image_filename']) ?>" alt="">
+            <img src="images.png/<?= htmlspecialchars($row['image']) ?>" alt="<?= htmlspecialchars($row['headline']) ?>">
             <div class="home-text">
                 <span><?= htmlspecialchars($row['headline']) ?></span>
                 <h1><?= nl2br(htmlspecialchars($row['subheadline'])) ?></h1>
@@ -123,104 +204,76 @@ $sliders = $conn->query("SELECT * FROM sliders ORDER BY id ASC");
     <div class="swiper-pagination"></div>
 </section>
 
-
-<!-- Search Section -->
-<section class="search-section" id="search">
-    <div class="search-container">
-        <input type="text" id="searchBox" placeholder="Search for a movie..." autocomplete="off">
-        <div id="homeSuggestions" class="suggestions"></div>
-    </div>
-</section>
-
-<!-- Opening This Week -->
-<section class="movies" id="movies">
-    <h2 class="heading">Opening This Week</h2>
-    <div class="movies-container">
-        <?php while ($row = $movies->fetch_assoc()): ?>
-            <a href="movie_details.php?id=<?= $row['id'] ?>" class="box">
-                <div class="box-img">
-                    <img src="images.png/<?= htmlspecialchars($row['image_filename']) ?>" alt="<?= htmlspecialchars($row['title']) ?>">
-                </div>
-                <h3><?= htmlspecialchars($row['title']) ?></h3>
-                <span><?= htmlspecialchars($row['duration']) ?> | <?= htmlspecialchars($row['genre']) ?></span>
+<section class="section" id="movies">
+    <h2 class="heading">Featured Movies</h2>
+    <div class="movie-grid">
+        <?php while ($row = $featured->fetch_assoc()): ?>
+        <div class="movie-card">
+            <a href="movie_details.php?id=<?= $row['id'] ?>">
+                <img src="images.png/<?= htmlspecialchars($row['image_filename']) ?>" alt="<?= htmlspecialchars($row['title']) ?>">
+                <h4><?= htmlspecialchars($row['title']) ?></h4>
+                <p><?= htmlspecialchars($row['duration']) ?> | <?= htmlspecialchars($row['genre']) ?></p>
+                <div class="price">$<?= number_format($row['price'], 2) ?></div>
             </a>
+        </div>
         <?php endwhile; ?>
     </div>
 </section>
 
-<!-- Coming Soon -->
-<section class="coming" id="coming">
+<section class="section" id="coming">
     <h2 class="heading">Coming Soon</h2>
-    <div class="coming-container">
-        <div class="swiper-wrapper">
-            <?php while ($row = $comingSoon->fetch_assoc()): ?>
-                <a href="movie_details.php?id=<?= $row['id'] ?>" class="swiper-slide box">
-                    <div class="box-img">
-                        <img src="images.png/<?= htmlspecialchars($row['image_filename']) ?>" alt="<?= htmlspecialchars($row['title']) ?>">
-                    </div>
-                    <h3><?= htmlspecialchars($row['title']) ?></h3>
-                    <span><?= htmlspecialchars($row['duration']) ?> | <?= htmlspecialchars($row['genre']) ?></span>
-                </a>
-            <?php endwhile; ?>
+    <div class="movie-grid">
+        <?php while ($row = $comingSoon->fetch_assoc()): ?>
+        <div class="movie-card">
+            <a href="movie_details.php?id=<?= $row['id'] ?>">
+                <img src="images.png/<?= htmlspecialchars($row['image_filename']) ?>" alt="<?= htmlspecialchars($row['title']) ?>">
+                <h4><?= htmlspecialchars($row['title']) ?></h4>
+                <p><?= htmlspecialchars($row['duration']) ?> | <?= htmlspecialchars($row['genre']) ?></p>
+                <div class="price">$<?= number_format($row['price'], 2) ?></div>
+            </a>
         </div>
+        <?php endwhile; ?>
     </div>
 </section>
-
-<!-- Footer -->
-<section class="footer">
-    <a href="#" class="logo"><i class="ri ri-film-line"></i> Movies</a>
-    <div class="social">
-        <a href="#"><i class="ri ri-facebook-fill"></i></a>
-        <a href="#"><i class="ri ri-instagram-fill"></i></a>
-        <a href="#"><i class="ri ri-tiktok-fill"></i></a>
-        <a href="#"><i class="ri ri-twitter-fill"></i></a>
-    </div>
-</section>
-
-<div class="copyright">
-    <p>&#169; Example All Rights Reserved</p>
-</div>
 
 <script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
 <script src="main.js" defer></script>
-
-<!-- Live Search JS -->
 <script>
-const searchBox = document.getElementById('searchBox');
-const suggestions = document.getElementById('homeSuggestions');
-
-searchBox.addEventListener("input", () => {
-    const query = searchBox.value.trim();
-    if (query.length < 1) {
-        suggestions.style.display = 'none';
-        return;
-    }
-
-    fetch(`search_suggestions.php?query=${encodeURIComponent(query)}`)
-    .then(res => res.json())
-    .then(data => {
-        suggestions.innerHTML = '';
-        if (data.length > 0) {
-            data.forEach(item => {
-                const div = document.createElement('div');
-                div.textContent = item.title;
-                div.onclick = () => {
-                    window.location.href = `movie_details.php?id=${item.id}`;
-                };
-                suggestions.appendChild(div);
-            });
-            suggestions.style.display = 'block';
-        } else {
-            suggestions.style.display = 'none';
-        }
+document.addEventListener("DOMContentLoaded", function () {
+    new Swiper(".swiper", {
+        loop: true,
+        autoplay: {
+            delay: 4000,
+            disableOnInteraction: false,
+        },
+        pagination: {
+            el: ".swiper-pagination",
+            clickable: true,
+        },
     });
 
-});
+    const input = document.getElementById("searchInput");
+    const suggestions = document.getElementById("suggestions");
 
-document.addEventListener("click", e => {
-    if (!searchBox.contains(e.target) && !suggestions.contains(e.target)) {
-        suggestions.style.display = 'none';
-    }
+    input.addEventListener("keyup", function () {
+        const query = input.value.trim();
+        if (query.length === 0) {
+            suggestions.innerHTML = "";
+            return;
+        }
+
+        fetch("search_suggestions.php?query=" + encodeURIComponent(query))
+            .then(res => res.json())
+            .then(data => {
+                suggestions.innerHTML = "";
+                data.forEach(movie => {
+                    const div = document.createElement("div");
+                    div.textContent = movie.title;
+                    div.onclick = () => window.location.href = "movie_details.php?id=" + movie.id;
+                    suggestions.appendChild(div);
+                });
+            });
+    });
 });
 </script>
 

@@ -12,6 +12,7 @@ if (!isset($_SESSION['user_id'])) {
 $user_id = $_SESSION['user_id'];
 
 $movies = [];
+$totalPrice = 0;
 
 $stmt = $conn->prepare("
     SELECT m.*
@@ -19,11 +20,17 @@ $stmt = $conn->prepare("
     JOIN movies m ON c.movie_id = m.id
     WHERE c.user_id = ?
 ");
+if (!$stmt) {
+    die("Query preparation failed: " . $conn->error);
+}
 $stmt->bind_param("i", $user_id);
 $stmt->execute();
 $result = $stmt->get_result();
 
 while ($row = $result->fetch_assoc()) {
+    $row['quantity'] = 1;
+    $row['subtotal'] = $row['price'];
+    $totalPrice += $row['subtotal'];
     $movies[] = $row;
 }
 ?>
@@ -113,6 +120,18 @@ while ($row = $result->fetch_assoc()) {
             text-align: center;
             margin-top: 2rem;
         }
+        .price-tag {
+            margin-top: 0.5rem;
+            font-weight: bold;
+            color: #fff;
+        }
+        .total {
+            text-align: right;
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-top: 1rem;
+            color: #ff2c1f;
+        }
     </style>
 </head>
 <body>
@@ -126,10 +145,13 @@ while ($row = $result->fetch_assoc()) {
                 <div class="movie-info">
                     <h3><?= htmlspecialchars($movie['title']) ?></h3>
                     <p><?= htmlspecialchars($movie['duration']) ?> | <?= htmlspecialchars($movie['genre']) ?></p>
+                    <p class="price-tag">Price: $<?= number_format($movie['price'], 2) ?></p>
                     <a class="remove-btn" href="remove_from_cart.php?id=<?= $movie['id'] ?>">Remove</a>
                 </div>
             </div>
         <?php endforeach; ?>
+
+        <div class="total">Total: $<?= number_format($totalPrice, 2) ?></div>
 
         <div class="actions">
             <a href="index.php" class="btn">⬅ Continue Shopping</a>
